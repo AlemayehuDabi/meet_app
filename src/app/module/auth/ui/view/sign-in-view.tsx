@@ -18,6 +18,9 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { GitBranch, Mail, OctagonAlertIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -26,14 +29,47 @@ const formSchema = z.object({
   }),
 });
 
+type formData = z.infer<typeof formSchema>;
+
 export default function SignInView() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+
+  const form = useForm<formData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
+  const onSubmit = async (data: formData) => {
+    try {
+      await authClient.signIn.email(
+        {
+          email: data.email,
+          password: data.password,
+        },
+        {
+          onRequest: () => {
+            setLoading(!loading);
+          },
+          onSuccess: ({ data }) => {
+            setSuccess(!success);
+            router.push("/");
+          },
+          onError: ({ error }) => {
+            setError(true);
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-700 to-violet-700 p-4">
@@ -68,7 +104,7 @@ export default function SignInView() {
             </div>
           </div>
           <Form {...form}>
-            <form className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -107,7 +143,7 @@ export default function SignInView() {
                 )}
               />
 
-              {true && (
+              {error && (
                 <Alert className="bg-destructive/20 border-2 border-red-500">
                   <OctagonAlertIcon className="!h-5 !w-5 !text-destructive" />
                   <AlertTitle className="text-md text-gray-900 font-semibold">
