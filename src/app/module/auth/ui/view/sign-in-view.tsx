@@ -147,7 +147,7 @@ export default function SignInView() {
                 <Alert className="bg-destructive/20 border-2 border-red-500">
                   <OctagonAlertIcon className="!h-5 !w-5 !text-destructive" />
                   <AlertTitle className="text-md text-gray-900 font-semibold">
-                    Error
+                    {error}
                   </AlertTitle>
                 </Alert>
               )}
@@ -156,7 +156,7 @@ export default function SignInView() {
                 className="w-full rounded-xl  hover:bg-gray-700 transition"
                 type="submit"
               >
-                Sign In
+                {loading ? "loading" : "Sign In"}
               </Button>
             </form>
           </Form>
